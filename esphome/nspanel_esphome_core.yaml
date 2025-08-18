@@ -1231,8 +1231,7 @@ globals:
 
 ##### START - BINARY SENSOR CONFIGURATION #####
 binary_sensor:
-
-  ###### LEFT BUTTON BELOW DISPLAY TO TOGGLE RELAY#####
+  ###### LEFT BUTTON BELOW DISPLAY TO TOGGLE RELAY #####
   - name: Left Button
     platform: gpio
     id: left_button
@@ -1268,12 +1267,22 @@ binary_sensor:
                               - wifi.connected:
               then:
                 - switch.toggle: relay_1
+                - delay: 100ms  # Small delay to ensure relay state is updated
                 - mqtt.publish:
                     topic: v1/devices/me/attributes
                     payload: !lambda |-
-                      return "{\"relay1_control\":" + (id(relay_1).state ? "true" : "false" + 
-                             ",\"shared\":{\"relay1_control\":" + (id(relay_1).state ? "true" : "false" + "}}";
+                      return "{\"relay1_control\":" + (id(relay_1).state ? "true" : "false") + "}";
                     retain: true
+                    qos: 1
+                - mqtt.publish:
+                    topic: v1/devices/me/attributes/shared
+                    payload: !lambda |-
+                      return "{\"relay1_control\":" + (id(relay_1).state ? "true" : "false") + "}";
+                    retain: true
+                    qos: 1
+                - logger.log: 
+                    format: "Published relay1 button state: %s to ThingsBoard"
+                    args: [ 'id(relay_1).state ? "ON" : "OFF"' ]
           - script.execute:
               id: ha_button
               page: !lambda return current_page->state.c_str();
@@ -1314,12 +1323,22 @@ binary_sensor:
                               - wifi.connected:
               then:
                 - switch.toggle: relay_2
+                - delay: 100ms  # Small delay to ensure relay state is updated
                 - mqtt.publish:
                     topic: v1/devices/me/attributes
                     payload: !lambda |-
-                      return "{\"relay2_control\":" + (id(relay_2).state ? "true" : "false" + 
-                             ",\"shared\":{\"relay2_control\":" + (id(relay_2).state ? "true" : "false" + "}}";
+                      return "{\"relay2_control\":" + (id(relay_2).state ? "true" : "false") + "}";
                     retain: true
+                    qos: 1
+                - mqtt.publish:
+                    topic: v1/devices/me/attributes/shared
+                    payload: !lambda |-
+                      return "{\"relay2_control\":" + (id(relay_2).state ? "true" : "false") + "}";
+                    retain: true
+                    qos: 1
+                - logger.log: 
+                    format: "Published relay2 button state: %s to ThingsBoard"
+                    args: [ 'id(relay_2).state ? "ON" : "OFF"' ]
           - script.execute:
               id: ha_button
               page: !lambda return current_page->state.c_str();
@@ -1735,73 +1754,93 @@ switch:
     optimistic: true
     restore_mode: RESTORE_DEFAULT_OFF
 
-##### PHYSICAL SWITCH 1 #####
-- name: Relay 1
-  platform: gpio
-  id: relay_1
-  pin:
-    number: 22
-  restore_mode: RESTORE_DEFAULT_OFF
-  on_turn_on:
-    then:
-      - lambda: |-
-          if (id(relay_settings) & RelaySettings::Relay1_Local)
-            update_bitwise_setting(id(buttons_settings), true, ButtonSettings::ButtonLeft_State);
-          refresh_relays->execute(1);
-          refresh_hardware_buttons_bars->execute(1);
-      - mqtt.publish:
-        topic: 'v1/devices/me/attributes'
-        payload: '{"relay1_control":true,"shared":{"relay1_control":true}}'
-        retain: true
-        qos: 1
-      - logger.log: "Published from switch relay_1 ON state to ThingsBoard"
-  on_turn_off:
-    then:
-      - lambda: |-
-          if (id(relay_settings) & RelaySettings::Relay1_Local)
-            update_bitwise_setting(id(buttons_settings), false, ButtonSettings::ButtonLeft_State);
-          refresh_relays->execute(1);
-          refresh_hardware_buttons_bars->execute(1);
-      - mqtt.publish:
-        topic: 'v1/devices/me/attributes'
-        payload: '{"relay1_control":false,"shared":{"relay1_control":false}}'
-        retain: true
-        qos: 1
-      - logger.log: "Published from switch relay_1 OFF state to ThingsBoard"
+  ##### PHYSICAL SWITCH 1 #####
+  - name: Relay 1
+    platform: gpio
+    id: relay_1
+    pin:
+      number: 22
+    restore_mode: RESTORE_DEFAULT_OFF
+    on_turn_on:
+      then:
+        - lambda: |-
+            if (id(relay_settings) & RelaySettings::Relay1_Local)
+              update_bitwise_setting(id(buttons_settings), true, ButtonSettings::ButtonLeft_State);
+            refresh_relays->execute(1);
+            refresh_hardware_buttons_bars->execute(1);
+        - mqtt.publish:
+            topic: 'v1/devices/me/attributes'
+            payload: '{"relay1_control":true}'
+            retain: true
+            qos: 1
+        - mqtt.publish:
+            topic: 'v1/devices/me/attributes/shared'
+            payload: '{"relay1_control":true}'
+            retain: true
+            qos: 1
+        - logger.log: "Relay 1 turned ON - Published to ThingsBoard"
+    on_turn_off:
+      then:
+        - lambda: |-
+            if (id(relay_settings) & RelaySettings::Relay1_Local)
+              update_bitwise_setting(id(buttons_settings), false, ButtonSettings::ButtonLeft_State);
+            refresh_relays->execute(1);
+            refresh_hardware_buttons_bars->execute(1);
+        - mqtt.publish:
+            topic: 'v1/devices/me/attributes'
+            payload: '{"relay1_control":false}'
+            retain: true
+            qos: 1
+        - mqtt.publish:
+            topic: 'v1/devices/me/attributes/shared'
+            payload: '{"relay1_control":false}'
+            retain: true
+            qos: 1
+        - logger.log: "Relay 1 turned OFF - Published to ThingsBoard"
 
-##### PHYSICAL SWITCH 2 ######
-- name: Relay 2
-  platform: gpio
-  id: relay_2
-  pin:
-    number: 19
-  restore_mode: RESTORE_DEFAULT_OFF
-  on_turn_on:
-    then:
-      - lambda: |-
-          if (id(relay_settings) & RelaySettings::Relay2_Local)
-            update_bitwise_setting(id(buttons_settings), true, ButtonSettings::ButtonRight_State);
-          refresh_relays->execute(2);
-          refresh_hardware_buttons_bars->execute(2);
-      - mqtt.publish:
-        topic: 'v1/devices/me/attributes'
-        payload: '{"relay2_control":true,"shared":{"relay2_control":true}}'
-        retain: true
-        qos: 1
-      - logger.log: "Published from switch relay_2 ON state to ThingsBoard"
-  on_turn_off:
-    then:
-      - lambda: |-
-          if (id(relay_settings) & RelaySettings::Relay2_Local)
-            update_bitwise_setting(id(buttons_settings), false, ButtonSettings::ButtonRight_State);
-          refresh_relays->execute(2);
-          refresh_hardware_buttons_bars->execute(2);
-      - mqtt.publish:
-        topic: 'v1/devices/me/attributes'
-        payload: '{"relay2_control":false,"shared":{"relay2_control":false}}'
-        retain: true
-        qos: 1
-      - logger.log: "Published from switch relay_2 OFF state to ThingsBoard"
+  ##### PHYSICAL SWITCH 2 #####
+  - name: Relay 2
+    platform: gpio
+    id: relay_2
+    pin:
+      number: 19
+    restore_mode: RESTORE_DEFAULT_OFF
+    on_turn_on:
+      then:
+        - lambda: |-
+            if (id(relay_settings) & RelaySettings::Relay2_Local)
+              update_bitwise_setting(id(buttons_settings), true, ButtonSettings::ButtonRight_State);
+            refresh_relays->execute(2);
+            refresh_hardware_buttons_bars->execute(2);
+        - mqtt.publish:
+            topic: 'v1/devices/me/attributes'
+            payload: '{"relay2_control":true}'
+            retain: true
+            qos: 1
+        - mqtt.publish:
+            topic: 'v1/devices/me/attributes/shared'
+            payload: '{"relay2_control":true}'
+            retain: true
+            qos: 1
+        - logger.log: "Relay 2 turned ON - Published to ThingsBoard"
+    on_turn_off:
+      then:
+        - lambda: |-
+            if (id(relay_settings) & RelaySettings::Relay2_Local)
+              update_bitwise_setting(id(buttons_settings), false, ButtonSettings::ButtonRight_State);
+            refresh_relays->execute(2);
+            refresh_hardware_buttons_bars->execute(2);
+        - mqtt.publish:
+            topic: 'v1/devices/me/attributes'
+            payload: '{"relay2_control":false}'
+            retain: true
+            qos: 1
+        - mqtt.publish:
+            topic: 'v1/devices/me/attributes/shared'
+            payload: '{"relay2_control":false}'
+            retain: true
+            qos: 1
+        - logger.log: "Relay 2 turned OFF - Published to ThingsBoard"
       
   ##### DISPLAY ALWAYS ON #####
   - name: Nextion display - Power
