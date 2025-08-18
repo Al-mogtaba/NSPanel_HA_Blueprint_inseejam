@@ -1751,7 +1751,8 @@ switch:
           refresh_hardware_buttons_bars->execute(1);
       - mqtt.publish:
           topic: v1/devices/me/attributes
-          payload: '{"relay1_control":true,"shared":{"relay1_control":true}}'
+          payload: !lambda |-
+            return "{\"relay1_control\":true,\"shared\":{\"relay1_control\":true}}";
           retain: true
       - logger.log: "Published relay_1 ON state to TB (direct + shared)"
   on_turn_off:
@@ -1763,7 +1764,8 @@ switch:
           refresh_hardware_buttons_bars->execute(1);
       - mqtt.publish:
           topic: v1/devices/me/attributes
-          payload: '{"relay1_control":false,"shared":{"relay1_control":false}}'
+          payload: !lambda |-
+            return "{\"relay1_control\":false,\"shared\":{\"relay1_control\":false}}";
           retain: true
       - logger.log: "Published relay_1 OFF state to TB (direct + shared)"
 
@@ -1783,7 +1785,8 @@ switch:
           refresh_hardware_buttons_bars->execute(2);
       - mqtt.publish:
           topic: v1/devices/me/attributes
-          payload: '{"relay2_control":true,"shared":{"relay2_control":true}}'
+          payload: !lambda |-
+            return "{\"relay2_control\":true,\"shared\":{\"relay2_control\":true}}";
           retain: true
       - logger.log: "Published relay_2 ON state to TB (direct + shared)"
   on_turn_off:
@@ -1795,10 +1798,11 @@ switch:
           refresh_hardware_buttons_bars->execute(2);
       - mqtt.publish:
           topic: v1/devices/me/attributes
-          payload: '{"relay2_control":false,"shared":{"relay2_control":false}}'
+          payload: !lambda |-
+            return "{\"relay2_control\":false,\"shared\":{\"relay2_control\":false}}";
           retain: true
       - logger.log: "Published relay_2 OFF state to TB (direct + shared)"
-
+      
   ##### DISPLAY ALWAYS ON #####
   - name: Nextion display - Power
     platform: gpio
