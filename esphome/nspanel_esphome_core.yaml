@@ -1750,11 +1750,11 @@ switch:
           refresh_relays->execute(1);
           refresh_hardware_buttons_bars->execute(1);
       - mqtt.publish:
-          topic: v1/devices/me/attributes
-          payload: !lambda |-
-            return "{\"relay1_control\":true,\"shared\":{\"relay1_control\":true}}";
-          retain: true
-      - logger.log: "Published relay_1 ON state to TB (direct + shared)"
+            topic: 'v1/devices/me/attributes'
+            payload: '{"relay1_control":true,"shared":{"relay1_control":true}}'
+            retain: true
+            qos: 1
+        - logger.log: "Published from switch relay_1 ON state to ThingsBoard"
   on_turn_off:
     then:
       - lambda: |-
@@ -1763,11 +1763,11 @@ switch:
           refresh_relays->execute(1);
           refresh_hardware_buttons_bars->execute(1);
       - mqtt.publish:
-          topic: v1/devices/me/attributes
-          payload: !lambda |-
-            return "{\"relay1_control\":false,\"shared\":{\"relay1_control\":false}}";
-          retain: true
-      - logger.log: "Published relay_1 OFF state to TB (direct + shared)"
+            topic: 'v1/devices/me/attributes'
+            payload: '{"relay1_control":false,"shared":{"relay1_control":false}}'
+            retain: true
+            qos: 1
+        - logger.log: "Published from switch relay_1 OFF state to ThingsBoard"
 
 ##### PHYSICAL SWITCH 2 ######
 - name: Relay 2
@@ -1784,11 +1784,11 @@ switch:
           refresh_relays->execute(2);
           refresh_hardware_buttons_bars->execute(2);
       - mqtt.publish:
-          topic: v1/devices/me/attributes
-          payload: !lambda |-
-            return "{\"relay2_control\":true,\"shared\":{\"relay2_control\":true}}";
-          retain: true
-      - logger.log: "Published relay_2 ON state to TB (direct + shared)"
+            topic: 'v1/devices/me/attributes'
+            payload: '{"relay2_control":true,"shared":{"relay2_control":true}}'
+            retain: true
+            qos: 1
+        - logger.log: "Published from switch relay_2 ON state to ThingsBoard"
   on_turn_off:
     then:
       - lambda: |-
@@ -1797,11 +1797,11 @@ switch:
           refresh_relays->execute(2);
           refresh_hardware_buttons_bars->execute(2);
       - mqtt.publish:
-          topic: v1/devices/me/attributes
-          payload: !lambda |-
-            return "{\"relay2_control\":false,\"shared\":{\"relay2_control\":false}}";
-          retain: true
-      - logger.log: "Published relay_2 OFF state to TB (direct + shared)"
+            topic: 'v1/devices/me/attributes'
+            payload: '{"relay2_control":false,"shared":{"relay2_control":false}}'
+            retain: true
+            qos: 1
+        - logger.log: "Published from switch relay_2 OFF state to ThingsBoard"
       
   ##### DISPLAY ALWAYS ON #####
   - name: Nextion display - Power
