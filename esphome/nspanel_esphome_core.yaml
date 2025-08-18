@@ -1232,7 +1232,7 @@ globals:
 ##### START - BINARY SENSOR CONFIGURATION #####
 binary_sensor:
 
-  ###### LEFT BUTTON BELOW DISPLAY TO TOGGLE RELAY#####
+ ###### LEFT BUTTON BELOW DISPLAY TO TOGGLE RELAY#####
   - name: Left Button
     platform: gpio
     id: left_button
@@ -1268,11 +1268,18 @@ binary_sensor:
                               - wifi.connected:
               then:
                 - switch.toggle: relay_1
+                # !!! CORRECTION: This now publishes the state of BOTH relays correctly !!!
                 - mqtt.publish:
                     topic: v1/devices/me/attributes
                     payload: !lambda |-
-                      return "{\"relay1_control\":" + (id(relay_1).state ? "true" : "false" + 
-                             ",\"shared\":{\"relay1_control\":" + (id(relay_1).state ? "true" : "false" + "}}";
+                      char buffer[200];
+                      snprintf(buffer, sizeof(buffer),
+                               "{\"relay1_control\":%s,\"relay2_control\":%s,\"shared\":{\"relay1_control\":%s,\"relay2_control\":%s}}",
+                               id(relay_1).state ? "false" : "true",
+                               id(relay_2).state ? "true" : "false",
+                               id(relay_1).state ? "false" : "true",
+                               id(relay_2).state ? "true" : "false");
+                      return std::string(buffer);
                     retain: true
           - script.execute:
               id: ha_button
@@ -1314,11 +1321,18 @@ binary_sensor:
                               - wifi.connected:
               then:
                 - switch.toggle: relay_2
+                # !!! CORRECTION: This now publishes the state of BOTH relays correctly !!!
                 - mqtt.publish:
                     topic: v1/devices/me/attributes
                     payload: !lambda |-
-                      return "{\"relay2_control\":" + (id(relay_2).state ? "true" : "false" + 
-                             ",\"shared\":{\"relay2_control\":" + (id(relay_2).state ? "true" : "false" + "}}";
+                      char buffer[200];
+                      snprintf(buffer, sizeof(buffer),
+                               "{\"relay1_control\":%s,\"relay2_control\":%s,\"shared\":{\"relay1_control\":%s,\"relay2_control\":%s}}",
+                               id(relay_1).state ? "true" : "false",
+                               id(relay_2).state ? "false" : "true",
+                               id(relay_1).state ? "true" : "false",
+                               id(relay_2).state ? "false" : "true");
+                      return std::string(buffer);
                     retain: true
           - script.execute:
               id: ha_button
@@ -1749,10 +1763,16 @@ switch:
             update_bitwise_setting(id(buttons_settings), true, ButtonSettings::ButtonLeft_State);
           refresh_relays->execute(1);
           refresh_hardware_buttons_bars->execute(1);
+      # !!! CORRECTION: This now publishes the state of BOTH relays correctly !!!
       - mqtt.publish:
           topic: v1/devices/me/attributes
           payload: !lambda |-
-            return "{\"relay1_control\":true,\"shared\":{\"relay1_control\":true}}";
+            char buffer[200];
+            snprintf(buffer, sizeof(buffer),
+                     "{\"relay1_control\":true,\"relay2_control\":%s,\"shared\":{\"relay1_control\":true,\"relay2_control\":%s}}",
+                     id(relay_2).state ? "true" : "false",
+                     id(relay_2).state ? "true" : "false");
+            return std::string(buffer);
           retain: true
       - logger.log: "Published relay_1 ON state to TB (direct + shared)"
   on_turn_off:
@@ -1762,10 +1782,16 @@ switch:
             update_bitwise_setting(id(buttons_settings), false, ButtonSettings::ButtonLeft_State);
           refresh_relays->execute(1);
           refresh_hardware_buttons_bars->execute(1);
+      # !!! CORRECTION: This now publishes the state of BOTH relays correctly !!!
       - mqtt.publish:
           topic: v1/devices/me/attributes
           payload: !lambda |-
-            return "{\"relay1_control\":false,\"shared\":{\"relay1_control\":false}}";
+            char buffer[200];
+            snprintf(buffer, sizeof(buffer),
+                     "{\"relay1_control\":false,\"relay2_control\":%s,\"shared\":{\"relay1_control\":false,\"relay2_control\":%s}}",
+                     id(relay_2).state ? "true" : "false",
+                     id(relay_2).state ? "true" : "false");
+            return std::string(buffer);
           retain: true
       - logger.log: "Published relay_1 OFF state to TB (direct + shared)"
 
@@ -1783,10 +1809,16 @@ switch:
             update_bitwise_setting(id(buttons_settings), true, ButtonSettings::ButtonRight_State);
           refresh_relays->execute(2);
           refresh_hardware_buttons_bars->execute(2);
+      # !!! CORRECTION: This now publishes the state of BOTH relays correctly !!!
       - mqtt.publish:
           topic: v1/devices/me/attributes
           payload: !lambda |-
-            return "{\"relay2_control\":true,\"shared\":{\"relay2_control\":true}}";
+            char buffer[200];
+            snprintf(buffer, sizeof(buffer),
+                     "{\"relay1_control\":%s,\"relay2_control\":true,\"shared\":{\"relay1_control\":%s,\"relay2_control\":true}}",
+                     id(relay_1).state ? "true" : "false",
+                     id(relay_1).state ? "true" : "false");
+            return std::string(buffer);
           retain: true
       - logger.log: "Published relay_2 ON state to TB (direct + shared)"
   on_turn_off:
@@ -1796,12 +1828,19 @@ switch:
             update_bitwise_setting(id(buttons_settings), false, ButtonSettings::ButtonRight_State);
           refresh_relays->execute(2);
           refresh_hardware_buttons_bars->execute(2);
+      # !!! CORRECTION: This now publishes the state of BOTH relays correctly !!!
       - mqtt.publish:
           topic: v1/devices/me/attributes
           payload: !lambda |-
-            return "{\"relay2_control\":false,\"shared\":{\"relay2_control\":false}}";
+            char buffer[200];
+            snprintf(buffer, sizeof(buffer),
+                     "{\"relay1_control\":%s,\"relay2_control\":false,\"shared\":{\"relay1_control\":%s,\"relay2_control\":false}}",
+                     id(relay_1).state ? "true" : "false",
+                     id(relay_1).state ? "true" : "false");
+            return std::string(buffer);
           retain: true
       - logger.log: "Published relay_2 OFF state to TB (direct + shared)"
+
       
   ##### DISPLAY ALWAYS ON #####
   - name: Nextion display - Power
