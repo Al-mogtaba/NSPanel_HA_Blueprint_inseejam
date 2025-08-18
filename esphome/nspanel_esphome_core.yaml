@@ -1271,13 +1271,13 @@ binary_sensor:
                 - mqtt.publish:
                     topic: v1/devices/me/attributes
                     payload: !lambda |-
-                      return "{\"relay1_control\":" + (id(relay_1).state ? "true" : "false") + "}";
+                      return std::string("{\"relay1_control\":") + (id(relay_1).state ? "true" : "false") + "}";
                     retain: true
                     qos: 1
                 - mqtt.publish:
                     topic: v1/devices/me/attributes/shared
                     payload: !lambda |-
-                      return "{\"relay1_control\":" + (id(relay_1).state ? "true" : "false") + "}";
+                      return std::string("{\"relay1_control\":") + (id(relay_1).state ? "true" : "false") + "}";
                     retain: true
                     qos: 1
                 - logger.log: 
@@ -1327,13 +1327,13 @@ binary_sensor:
                 - mqtt.publish:
                     topic: v1/devices/me/attributes
                     payload: !lambda |-
-                      return "{\"relay2_control\":" + (id(relay_2).state ? "true" : "false") + "}";
+                      return std::string("{\"relay2_control\":") + (id(relay_2).state ? "true" : "false") + "}";
                     retain: true
                     qos: 1
                 - mqtt.publish:
                     topic: v1/devices/me/attributes/shared
                     payload: !lambda |-
-                      return "{\"relay2_control\":" + (id(relay_2).state ? "true" : "false") + "}";
+                      return std::string("{\"relay2_control\":") + (id(relay_2).state ? "true" : "false") + "}";
                     retain: true
                     qos: 1
                 - logger.log: 
