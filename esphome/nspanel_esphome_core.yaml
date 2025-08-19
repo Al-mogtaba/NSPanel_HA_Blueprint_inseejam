@@ -41,7 +41,7 @@ external_components:
       # type: local
       # path: packages/Blackymas/components
       type: git
-      url: https://github.com/Blackymas/NSPanel_HA_Blueprint
+      url: https://github.com/Al-mogtaba/NSPanel_HA_Blueprint_inseejam
       ref: v${version}
     components:
       - nspanel_ha_blueprint
